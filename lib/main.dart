@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,50 +30,29 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late WebViewController webViewController;
-  var loadingPercent = 0;
-
+  bool isLoading = true;
+  
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    webViewController = WebViewController()
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageStarted: (url) {
-          setState(() {
-            loadingPercent = 0;
-          });
-        },
-        onProgress: (progress) {
-          setState(() {
-            loadingPercent = progress;
-          });
-        },
-        onPageFinished: (url) {
-          setState(() {
-            loadingPercent = 100;
-          });
-        },
-      ))
-      ..loadRequest(Uri.parse('https://xpertmediamarketing.com/xpertcrm/'));
+    _launchURLApp();
   }
+
+_launchURLApp() async {
+  var url = Uri.parse("https://xpertmediamarketing.com/xpertcrm/");
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url, mode: LaunchMode.inAppWebView);
+  } else {
+    throw 'Could not launch $url';
+  }
+}
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Stack(
-          children: [
-            WebViewWidget(controller: webViewController),
-            loadingPercent < 100
-                ? LinearProgressIndicator(
-                    color: Colors.green,
-                    value: loadingPercent / 100,
-                  )
-                : const SizedBox()
-          ],
-        ), // This trailing comma makes auto-formatting nicer for build methods.
-      ),
+        body: isLoading? const Center(child: CircularProgressIndicator()):_launchURLApp(),),
     );
   }
 }
